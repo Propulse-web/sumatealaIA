@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Propulse | Diagnóstico de automatización</title>
+<style>
+  @font-face {
+    font-family: 'Anton';
+    src: local('Anton');
+  }
+  :root{
+    --bg: #1f1f1f;
+    --bg-card: #2a2a2a;
+    --violet: #8b5cf6;
+    --violet-light: #b4b0fb;
+    --violet-pale: #e4e1ff;
+    --white: #ffffff;
+    --ink: #1f1f1f;
+    --muted: #9a9a9a;
+    --line: #3a3a3a;
+    --good: #58d68d;
+    --warn: #f4c95d;
+    --bad: #ef6f6f;
+    --radius: 18px;
+    --max: 760px;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .wrap{
+    max-width: var(--max);
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+  }
+
+  /* ===== Header / brand ===== */
+  .brandbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 36px;
+  }
+  .brandmark{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .brandmark svg{ width:26px; height:26px; }
+  .brandmark .name{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    font-size: 15px;
+  }
+  .brandmark .name span{ color: var(--violet-light); }
+  .brandmark .sub{
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-top: -2px;
+  }
+  .step-indicator{
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* ===== Hero ===== */
+  .hero{
+    margin-bottom: 32px;
+  }
+  .hero h1{
+    font-family: Georgia, 'Times New Roman', serif;
+    font-weight: 800;
+    font-size: 32px;
+    line-height: 1.15;
+    margin: 0 0 14px;
+    letter-spacing: -0.5px;
+  }
+  .hero h1 .accent{
+    background: var(--violet-light);
+    color: var(--ink);
+    padding: 2px 10px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+  .hero p{
+    color: #cfcfcf;
+    font-size: 15.5px;
+    max-width: 56ch;
+    margin: 0;
+  }
+
+  /* ===== Progress ===== */
+  .progress-track{
+    height: 4px;
+    background: var(--line);
+    border-radius: 4px;
+    margin: 28px 0 6px;
+    overflow: hidden;
+  }
+  .progress-fill{
+    height: 100%;
+    background: linear-gradient(90deg, var(--violet), var(--violet-light));
+    width: 0%;
+    transition: width .35s ease;
+  }
+  .progress-label{
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    display:flex;
+    justify-content: space-between;
+  }
+
+  /* ===== Card / sections ===== */
+  .card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 30px 28px;
+    margin-top: 22px;
+  }
+  .section-eyebrow{
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--violet-light);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .question{
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 18px;
+    letter-spacing: -0.2px;
+  }
+  .question .hint{
+    display:block;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ===== Inputs ===== */
+  .field{ margin-bottom: 20px; }
+  .field label.field-label{
+    display:block;
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+  input[type="text"], input[type="email"], input[type="tel"], select{
+    width: 100%;
+    background: #1f1f1f;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 13px 14px;
+    color: var(--white);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+  input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, select:focus{
+    border-color: var(--violet-light);
+  }
+  select{ appearance: none; cursor:pointer; }
+
+  .two-col{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 560px){
+    .two-col{ grid-template-columns: 1fr; }
+  }
+
+  /* Option list (single choice, styled as cards) */
+  .opt-list{
+    display:flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .opt{
+    border: 1px solid var(--line);
+    background: #232323;
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    display:flex;
+    align-items:flex-start;
+    gap: 12px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .opt:hover{ border-color: #565072; }
+  .opt input{
+    margin-top: 3px;
+    accent-color: var(--violet);
+    flex-shrink: 0;
+  }
+  .opt.selected{
+    border-color: var(--violet-light);
+    background: #2e2a40;
+  }
+  .opt .opt-text{ font-size: 14.5px; }
+  .opt .opt-text strong{ font-weight: 600; }
+
+  /* Multi-select chips */
+  .chip-grid{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chip{
+    border: 1px solid var(--line);
+    background: #232323;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-size: 13.5px;
+    cursor: pointer;
+    user-select: none;
+    transition: all .15s ease;
+  }
+  .chip.selected{
+    background: var(--violet-light);
+    color: var(--ink);
+    border-color: var(--violet-light);
+    font-weight: 600;
+  }
+
+  /* Scale buttons */
+  .scale-row{
+    display:flex;
+    gap: 8px;
+  }
+  .scale-btn{
+    flex:1;
+    text-align:center;
+    border:1px solid var(--line);
+    background:#232323;
+    border-radius: 10px;
+    padding: 12px 6px;
+    cursor:pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all .15s ease;
+  }
+  .scale-btn.selected{
+    background: var(--violet);
+    border-color: var(--violet);
+    color: white;
+  }
+  .scale-caption{
+    display:flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* ===== Nav buttons ===== */
+  .nav-row{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    margin-top: 26px;
+    gap: 12px;
+  }
+  .btn{
+    border: none;
+    border-radius: 10px;
+    padding: 14px 26px;
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    font-family: inherit;
+    transition: transform .1s ease, opacity .15s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{
+    background: var(--violet-light);
+    color: var(--ink);
+  }
+  .btn-primary:hover{ background: #c4c1ff; }
+  .btn-primary:disabled{
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .btn-ghost{
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover{ color: var(--white); border-color: #565072; }
+  .btn-block{ width: 100%; }
+
+  .error-msg{
+    color: var(--bad);
+    font-size: 12.5px;
+    margin-top: -10px;
+    margin-bottom: 14px;
+    display:none;
+  }
+
+  /* ===== Result screen ===== */
+  .result-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .badge-hot{ background: rgba(88,214,141,0.15); color: var(--good); border: 1px solid rgba(88,214,141,0.4); }
+  .badge-warm{ background: rgba(244,201,93,0.15); color: var(--warn); border: 1px solid rgba(244,201,93,0.4); }
+  .badge-cold{ background: rgba(239,111,111,0.15); color: var(--bad); border: 1px solid rgba(239,111,111,0.4); }
+
+  .result-title{
+    font-family: Georgia, serif;
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0 0 12px;
+    line-height: 1.25;
+  }
+  .result-sub{
+    color: #cfcfcf;
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+
+  .score-bar-wrap{
+    margin: 18px 0 26px;
+  }
+  .score-bar-track{
+    height: 10px;
+    border-radius: 8px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .score-bar-fill{
+    height: 100%;
+    border-radius: 8px;
+    transition: width .6s ease;
+  }
+  .score-nums{
+    display:flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .flag-list{
+    list-style:none;
+    margin: 0 0 22px;
+    padding: 0;
+  }
+  .flag-list li{
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+    display:flex;
+    gap: 10px;
+    align-items:flex-start;
+  }
+  .flag-list li:last-child{ border-bottom: none; }
+  .flag-icon{ flex-shrink:0; margin-top: 2px; }
+
+  .next-steps{
+    background: #232323;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 22px;
+  }
+  .next-steps h3{
+    margin: 0 0 10px;
+    font-size: 15px;
+    color: var(--violet-light);
+  }
+  .next-steps p{
+    margin: 0;
+    font-size: 14px;
+    color: #d8d8d8;
+  }
+
+  .contact-form{
+    margin-top: 6px;
+  }
+
+  .footer-note{
+    text-align:center;
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 36px;
+  }
+
+  .loading-overlay{
+    display:none;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 30px 0;
+  }
+  .spinner{
+    width:16px; height:16px;
+    border: 2px solid var(--line);
+    border-top-color: var(--violet-light);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  .hidden{ display:none !important; }
+
+  .saved-pill{
+    font-size: 11.5px;
+    color: var(--good);
+    display:flex;
+    align-items:center;
+    gap:6px;
+    margin-top: 10px;
+  }
+
+  /* ===== Level cards (new) ===== */
+  .levels-wrap{
+    display:flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .level-card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 22px;
+    position: relative;
+  }
+  .level-card.is-winner{
+    border-color: var(--violet-light);
+    box-shadow: 0 0 0 1px rgba(180,176,251,0.25);
+  }
+  .level-head{
+    display:flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .level-num{
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .level-name{
+    font-size: 16px;
+    font-weight: 700;
+    margin: 2px 0 8px;
+  }
+  .level-pct{
+    font-size: 22px;
+    font-weight: 800;
+    font-family: Georgia, serif;
+  }
+  .level-bar-track{
+    height: 8px;
+    border-radius: 8px;
+    background: var(--line);
+    overflow: hidden;
+    margin: 10px 0 10px;
+  }
+  .level-bar-fill{
+    height: 100%;
+    border-radius: 8px;
+    width: 0%;
+    transition: width .6s ease;
+  }
+  .level-desc{
+    font-size: 13px;
+    color: #c4c4c4;
+    margin: 0;
+  }
+  .winner-tag{
+    display:inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: var(--violet-light);
+    color: var(--ink);
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="brandbar">
+    <div class="brandmark">
+      <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 8 L82 92 L70 92 L50 38 L30 92 L18 92 Z" fill="#ffffff"/>
+        <line x1="36" y1="40" x2="76" y2="90" stroke="#1f1f1f" stroke-width="2.5"/>
+      </svg>
+      <div>
+        <div class="name">PROPULSE</div>
+        <div class="sub">CONSULTORA</div>
+      </div>
+    </div>
+    <div class="step-indicator" id="stepIndicator">Diagnóstico de 6 secciones</div>
+  </div>
+
+  <!-- ===================== INTRO ===================== -->
+  <div id="screen-intro">
+    <div class="hero">
+      <h1>¿Tu empresa está lista para <span class="accent">crecer con orden</span> en lugar de caos?</h1>
+      <p>Respondé estas preguntas en menos de 3 minutos. Te decimos si tu empresa es candidata para un proceso de automatización con Propulse, y por qué.</p>
+    </div>
+    <div class="card">
+      <div class="section-eyebrow">Antes de empezar</div>
+      <p style="font-size:14px; color:#cfcfcf; margin:0 0 20px;">
+        No hay respuestas correctas o incorrectas. Cuanto más honesto seas sobre cómo funciona hoy tu empresa, más útil va a ser el diagnóstico.
+      </p>
+      <button class="btn btn-primary btn-block" onclick="goToStep(1)">Empezar diagnóstico →</button>
+    </div>
+  </div>
+
+  <!-- ===================== FORM SCREENS ===================== -->
+  <div id="screen-form" class="hidden">
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label">
+      <span id="progressLabel">Sección 1 de 6</span>
+      <span id="progressPct">0%</span>
+    </div>
+
+    <form id="diagForm">
+
+      <!-- STEP 1: Datos de la empresa -->
+      <div class="step" data-step="1">
+        <div class="card">
+          <div class="section-eyebrow">Sobre tu empresa</div>
+          <div class="question">Contanos quién está completando esto</div>
+          <div class="two-col">
+            <div class="field">
+              <label class="field-label">Nombre de la empresa</label>
+              <input type="text" id="q_empresa" required>
+            </div>
+            <div class="field">
+              <label class="field-label">Rubro / industria</label>
+              <input type="text" id="q_rubro" required>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field">
+              <label class="field-label">Tu nombre</label>
+              <input type="text" id="q_nombre" required>
+            </div>
+            <div class="field">
+              <label class="field-label">Tu rol en la empresa</label>
+              <input type="text" id="q_rol" placeholder="Dueño/a, gerente, responsable operativo..." required>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">¿Cuántas personas trabajan en la empresa?</label>
+            <select id="q_tamano" required>
+              <option value="">Seleccioná una opción</option>
+              <option value="1-10">1 a 10</option>
+              <option value="11-30">11 a 30</option>
+              <option value="31-80">31 a 80</option>
+              <option value="80+">Más de 80</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Procesos -->
+      <div class="step hidden" data-step="2">
+        <div class="card">
+          <div class="section-eyebrow">Procesos internos</div>
+          <div class="question">¿Qué tan definidos están tus procesos hoy?
+            <span class="hint">Pensá en ventas, onboarding, facturación o atención al cliente.</span>
+          </div>
+          <div class="opt-list" data-name="procesos">
+            <label class="opt">
+              <input type="radio" name="procesos" value="3">
+              <span class="opt-text"><strong>Bien definidos.</strong> Cada persona sabe qué hacer, cuándo y con qué herramienta.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="procesos" value="2">
+              <span class="opt-text"><strong>Más o menos.</strong> Hay una lógica general pero cada persona lo hace un poco distinto.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="procesos" value="0">
+              <span class="opt-text"><strong>Poco definidos.</strong> Trabajamos con herramientas aisladas que no se comunican entre sí.</span>
+            </label>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+
+        <div class="card">
+          <div class="question">¿Tus procesos dependen mucho del esfuerzo manual de tu equipo?
+            <span class="hint">Planillas, copiar y pegar datos, mandar la misma info por distintos canales, etc.</span>
+          </div>
+          <div class="scale-row" data-name="manual">
+            <div class="scale-btn" data-value="0">Nada</div>
+            <div class="scale-btn" data-value="1">Poco</div>
+            <div class="scale-btn" data-value="2">Bastante</div>
+            <div class="scale-btn" data-value="3">Mucho</div>
+          </div>
+          <div class="scale-caption"><span>No dependen</span><span>Dependen totalmente</span></div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Herramientas -->
+      <div class="step hidden" data-step="3">
+        <div class="card">
+          <div class="section-eyebrow">Stack tecnológico</div>
+          <div class="question">¿Qué herramientas usás hoy en tu día a día?
+            <span class="hint">Elegí todas las que apliquen.</span>
+          </div>
+          <div class="chip-grid" id="herramientasChips">
+            <div class="chip" data-value="planillas">Planillas (Excel / Sheets)</div>
+            <div class="chip" data-value="whatsapp">WhatsApp Business</div>
+            <div class="chip" data-value="crm">CRM</div>
+            <div class="chip" data-value="erp">ERP / sistema de gestión</div>
+            <div class="chip" data-value="formularios">Formularios online</div>
+            <div class="chip" data-value="contable">Sistema contable / facturación</div>
+            <div class="chip" data-value="apps_sueltas">Apps sueltas que no se comunican</div>
+            <div class="chip" data-value="ninguna">Casi nada formal todavía</div>
+          </div>
+          <div class="error-msg">Elegí al menos una opción.</div>
+        </div>
+
+        <div class="card">
+          <div class="question">¿Tu sistema o ERP actual se adapta bien a tu realidad?
+            <span class="hint">Si no usás ninguno, elegí la opción que más se acerque.</span>
+          </div>
+          <div class="opt-list" data-name="erp_fit">
+            <label class="opt">
+              <input type="radio" name="erp_fit" value="2">
+              <span class="opt-text"><strong>No tengo ERP</strong>, trabajo con planillas o herramientas sueltas y ya no alcanzan.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="erp_fit" value="0">
+              <span class="opt-text"><strong>Tengo un ERP/sistema y funciona bien</strong> para lo que necesito.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="erp_fit" value="3">
+              <span class="opt-text"><strong>Tengo un sistema, pero es caro, complejo o no se adapta</strong> a cómo trabajamos.</span>
+            </label>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+      </div>
+
+      <!-- STEP 4: Equipo y cultura -->
+      <div class="step hidden" data-step="4">
+        <div class="card">
+          <div class="section-eyebrow">Equipo y cultura de cambio</div>
+          <div class="question">¿Contás con alguien (interno) que desarrolle automatizaciones o integraciones hoy?</div>
+          <div class="opt-list" data-name="area_interna">
+            <label class="opt">
+              <input type="radio" name="area_interna" value="0">
+              <span class="opt-text"><strong>Sí</strong>, tenemos un área de IT/desarrollo que se encarga de esto.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="area_interna" value="3">
+              <span class="opt-text"><strong>No</strong>, no tenemos a nadie dedicado a esto.</span>
+            </label>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+
+        <div class="card">
+          <div class="question">¿Cómo reaccionaría tu equipo si cambia la forma de trabajar?
+            <span class="hint">Pensá en la resistencia interna al cambio.</span>
+          </div>
+          <div class="opt-list" data-name="resistencia">
+            <label class="opt">
+              <input type="radio" name="resistencia" value="3">
+              <span class="opt-text"><strong>Con entusiasmo.</strong> Están cansados de las tareas manuales y quieren que algo cambie.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="resistencia" value="1.5">
+              <span class="opt-text"><strong>Con cautela.</strong> Necesitan ver que funciona antes de confiar.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="resistencia" value="0">
+              <span class="opt-text"><strong>Con resistencia.</strong> "Así trabajamos siempre y funciona."</span>
+            </label>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+
+        <div class="card">
+          <div class="question">¿El responsable operativo (quien conoce el proceso día a día) podría participar de una reunión de diagnóstico?
+            <span class="hint">No solo el dueño o gerente, sino quien efectivamente hace la tarea.</span>
+          </div>
+          <div class="scale-row" data-name="operativo_disponible">
+            <div class="scale-btn" data-value="0">No</div>
+            <div class="scale-btn" data-value="1.5">Tal vez</div>
+            <div class="scale-btn" data-value="3">Sí, seguro</div>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+      </div>
+
+      <!-- STEP 5: Claridad del problema -->
+      <div class="step hidden" data-step="5">
+        <div class="card">
+          <div class="section-eyebrow">El problema a resolver</div>
+          <div class="question">Si tuvieras que elegir una sola tarea de la semana para que "desaparezca", ¿cuál sería?
+            <span class="hint">Esta es la pregunta más importante del diagnóstico. Sé específico.</span>
+          </div>
+          <div class="field">
+            <textarea id="q_tarea_desaparecer" rows="3" required
+              style="width:100%; background:#1f1f1f; border:1px solid var(--line); border-radius:10px; padding:13px 14px; color:#fff; font-size:15px; font-family:inherit; outline:none; resize:vertical;"
+              placeholder="Ej: cargar manualmente los pedidos que llegan por WhatsApp al sistema de facturación..."></textarea>
+          </div>
+          <div class="error-msg">Contanos brevemente cuál sería esa tarea.</div>
+        </div>
+
+        <div class="card">
+          <div class="question">¿Qué tan claro tenés qué proceso específico querés mejorar?</div>
+          <div class="opt-list" data-name="claridad">
+            <label class="opt">
+              <input type="radio" name="claridad" value="3">
+              <span class="opt-text"><strong>Muy claro.</strong> Sé exactamente qué proceso y qué resultado busco.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="claridad" value="1.5">
+              <span class="opt-text"><strong>Tengo una idea general</strong>, pero no un plan detallado.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="claridad" value="0">
+              <span class="opt-text"><strong>Quiero "automatizar todo"</strong>, todavía no sé bien por dónde empezar.</span>
+            </label>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+      </div>
+
+      <!-- STEP 6: Expectativas y contacto -->
+      <div class="step hidden" data-step="6">
+        <div class="card">
+          <div class="section-eyebrow">Expectativas</div>
+          <div class="question">¿Qué tipo de ayuda estás buscando principalmente?
+            <span class="hint">Elegí la que más se acerque a lo que tenés en mente hoy.</span>
+          </div>
+          <div class="opt-list" data-name="tipo_ayuda">
+            <label class="opt">
+              <input type="radio" name="tipo_ayuda" value="consultoria">
+              <span class="opt-text"><strong>Una mirada integral de mi operación.</strong> Quiero que alguien analice toda la empresa y me diga qué priorizar, no solo resolver una tarea puntual.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="tipo_ayuda" value="stack">
+              <span class="opt-text"><strong>Conectar lo que ya tengo y automatizar rápido.</strong> Ya uso herramientas (CRM, ERP, etc.) y quiero que se comuniquen entre sí sin perder tiempo.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="tipo_ayuda" value="ia">
+              <span class="opt-text"><strong>Empezar a usar IA ya mismo.</strong> Todavía no tengo mucho armado, pero quiero arrancar directo con inteligencia artificial en el día a día.</span>
+            </label>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+
+        <div class="card">
+          <div class="question">¿Qué buscás en cuanto a alcance del proyecto?</div>
+          <div class="opt-list" data-name="expectativa">
+            <label class="opt">
+              <input type="radio" name="expectativa" value="3">
+              <span class="opt-text"><strong>Más control y trazabilidad</strong>, con acompañamiento cercano y soluciones a medida.</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="expectativa" value="1">
+              <span class="opt-text"><strong>Reemplazar todas mis herramientas</strong> por un sistema nuevo y completo (tipo ERP).</span>
+            </label>
+            <label class="opt">
+              <input type="radio" name="expectativa" value="0.5">
+              <span class="opt-text">Todavía no estoy seguro, quiero explorar opciones.</span>
+            </label>
+          </div>
+          <div class="error-msg">Elegí una opción para continuar.</div>
+        </div>
+
+        <div class="card">
+          <div class="section-eyebrow">Para contactarte</div>
+          <div class="question">Dejanos tus datos de contacto</div>
+          <div class="two-col">
+            <div class="field">
+              <label class="field-label">Email</label>
+              <input type="email" id="q_email" required>
+            </div>
+            <div class="field">
+              <label class="field-label">Teléfono / WhatsApp</label>
+              <input type="tel" id="q_telefono" required>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn btn-ghost" id="btnBack" onclick="prevStep()">← Atrás</button>
+        <button type="button" class="btn btn-primary" id="btnNext" onclick="nextStep()">Continuar →</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ===================== LOADING ===================== -->
+  <div id="screen-loading" class="hidden">
+    <div class="loading-overlay" style="display:flex;">
+      <div class="spinner"></div>
+      <span>Calculando tu diagnóstico...</span>
+    </div>
+  </div>
+
+  <!-- ===================== RESULT ===================== -->
+  <div id="screen-result" class="hidden">
+    <h2 class="result-title" id="resultTitle"></h2>
+    <p class="result-sub" id="resultSub"></p>
+
+    <div class="levels-wrap" id="levelsWrap"></div>
+
+    <div class="card" id="flagsCard">
+      <div class="section-eyebrow">Lo que vimos en tus respuestas</div>
+      <ul class="flag-list" id="flagsList"></ul>
+    </div>
+
+    <div class="next-steps">
+      <h3 id="nextStepsTitle">Próximo paso recomendado</h3>
+      <p id="nextStepsBody"></p>
+    </div>
+
+    <div class="saved-pill" id="savedPill">
+      <span>✓</span><span>Diagnóstico guardado correctamente</span>
+    </div>
+  </div>
+
+  <div class="footer-note">Propulse Consultora · Procesos inteligentes, conectados y automatizados</div>
+</div>
+
+<script>
+const totalSteps = 6;
+let currentStep = 1;
+
+const answers = {
+  procesos: null, manual: null,
+  herramientas: [], erp_fit: null,
+  area_interna: null, resistencia: null, operativo_disponible: null,
+  tarea_desaparecer: '', claridad: null,
+  tipo_ayuda: null, expectativa: null
+};
+
+// ---- Chip / scale / option interactivity ----
+document.querySelectorAll('#herramientasChips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('selected');
+    const val = chip.dataset.value;
+    if (chip.classList.contains('selected')) {
+      if (!answers.herramientas.includes(val)) answers.herramientas.push(val);
+    } else {
+      answers.herramientas = answers.herramientas.filter(v => v !== val);
+    }
+  });
+});
+
+document.querySelectorAll('.scale-row').forEach(row => {
+  const name = row.dataset.name;
+  row.querySelectorAll('.scale-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      row.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      answers[name] = parseFloat(btn.dataset.value);
+    });
+  });
+});
+
+document.querySelectorAll('.opt-list').forEach(list => {
+  const name = list.dataset.name;
+  list.querySelectorAll('.opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      list.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      const radio = opt.querySelector('input[type="radio"]');
+      radio.checked = true;
+      const raw = radio.value;
+      answers[name] = isNaN(parseFloat(raw)) ? raw : parseFloat(raw);
+    });
+  });
+});
+
+function goToStep(n){
+  document.getElementById('screen-intro').classList.add('hidden');
+  document.getElementById('screen-form').classList.remove('hidden');
+  showStep(n);
+}
+
+function showStep(n){
+  document.querySelectorAll('.step').forEach(s => s.classList.add('hidden'));
+  document.querySelector(`.step[data-step="${n}"]`).classList.remove('hidden');
+  currentStep = n;
+  updateProgress();
+  document.getElementById('btnBack').style.visibility = (n === 1) ? 'hidden' : 'visible';
+  document.getElementById('btnNext').textContent = (n === totalSteps) ? 'Ver mi diagnóstico →' : 'Continuar →';
+  document.getElementById('stepIndicator').textContent = `Sección ${n} de ${totalSteps}`;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateProgress(){
+  const pct = Math.round((currentStep-1) / totalSteps * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `Sección ${currentStep} de ${totalSteps}`;
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function validateStep(n){
+  let valid = true;
+  document.querySelectorAll(`.step[data-step="${n}"] .error-msg`).forEach(e => e.style.display = 'none');
+
+  if (n === 1){
+    ['q_empresa','q_rubro','q_nombre','q_rol','q_tamano'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()){ el.style.borderColor = 'var(--bad)'; valid = false; }
+      else { el.style.borderColor = 'var(--line)'; }
+    });
+  }
+  if (n === 2){
+    if (answers.procesos === null){ showError(n, 0); valid = false; }
+    if (answers.manual === null){ showError(n, 1); valid = false; }
+  }
+  if (n === 3){
+    if (answers.herramientas.length === 0){ showError(n, 0); valid = false; }
+    if (answers.erp_fit === null){ showError(n, 1); valid = false; }
+  }
+  if (n === 4){
+    if (answers.area_interna === null){ showError(n, 0); valid = false; }
+    if (answers.resistencia === null){ showError(n, 1); valid = false; }
+    if (answers.operativo_disponible === null){ showError(n, 2); valid = false; }
+  }
+  if (n === 5){
+    const tarea = document.getElementById('q_tarea_desaparecer');
+    answers.tarea_desaparecer = tarea.value.trim();
+    if (!answers.tarea_desaparecer){ showError(n, 0); valid = false; }
+    if (answers.claridad === null){ showError(n, 1); valid = false; }
+  }
+  if (n === 6){
+    if (answers.tipo_ayuda === null){ showError(n, 0); valid = false; }
+    if (answers.expectativa === null){ showError(n, 1); valid = false; }
+    const email = document.getElementById('q_email');
+    const tel = document.getElementById('q_telefono');
+    if (!email.value.trim() || !email.value.includes('@')){ email.style.borderColor = 'var(--bad)'; valid = false; }
+    else { email.style.borderColor = 'var(--line)'; }
+    if (!tel.value.trim()){ tel.style.borderColor = 'var(--bad)'; valid = false; }
+    else { tel.style.borderColor = 'var(--line)'; }
+  }
+  return valid;
+}
+
+function showError(step, index){
+  const errs = document.querySelectorAll(`.step[data-step="${step}"] .error-msg`);
+  if (errs[index]) errs[index].style.display = 'block';
+}
+
+function nextStep(){
+  if (!validateStep(currentStep)) return;
+  if (currentStep < totalSteps){
+    showStep(currentStep + 1);
+  } else {
+    submitDiagnostic();
+  }
+}
+
+function prevStep(){
+  if (currentStep > 1) showStep(currentStep - 1);
+}
+
+// ---- Level definitions ----
+const LEVELS = {
+  consultoria: {
+    num: '01',
+    name: 'Consultoría de automatización',
+    desc: 'Diagnóstico integral de tu operación: mapeamos procesos, priorizamos por ROI y armamos una hoja de ruta por fases. Pensado para empresas que necesitan una mirada estratégica completa, no solo resolver una tarea puntual.',
+    color: 'var(--violet-light)'
+  },
+  stack: {
+    num: '02',
+    name: 'Automatizaciones rápidas en Stack',
+    desc: 'Conectamos las herramientas que ya usás (CRM, ERP, planillas, WhatsApp) para que se comuniquen entre sí y elimines tareas manuales puntuales, sin grandes proyectos ni tiempos largos de implementación.',
+    color: 'var(--good)'
+  },
+  ia: {
+    num: '03',
+    name: 'Integración y uso interno de IA',
+    desc: 'Para empresas chicas que todavía no tienen mucho armado y quieren arrancar directo con inteligencia artificial en su día a día, sin pasar primero por una automatización tradicional.',
+    color: 'var(--warn)'
+  }
+};
+
+// ---- Scoring logic: one independent percentage per level ----
+function computeLevelScores(){
+  const scores = { consultoria: 0, stack: 0, ia: 0 };
+  const maxes = { consultoria: 0, stack: 0, ia: 0 };
+
+  function add(level, points, max){
+    scores[level] += points;
+    maxes[level] += max;
+  }
+
+  // Tamaño de empresa: señal fuerte para "consultoria" (empresas grandes) vs "ia" (empresas chicas)
+  const tamano = document.getElementById('q_tamano').value;
+  if (tamano === '80+'){ add('consultoria', 3, 3); add('stack', 1, 3); add('ia', 0, 3); }
+  else if (tamano === '31-80'){ add('consultoria', 2, 3); add('stack', 2, 3); add('ia', 0.5, 3); }
+  else if (tamano === '11-30'){ add('consultoria', 1, 3); add('stack', 2.5, 3); add('ia', 1.5, 3); }
+  else if (tamano === '1-10'){ add('consultoria', 0, 3); add('stack', 1.5, 3); add('ia', 3, 3); }
+  else { add('consultoria', 1, 3); add('stack', 1, 3); add('ia', 1, 3); }
+
+  // Procesos definidos: empresas grandes con procesos poco definidos = necesitan consultoría integral
+  if (answers.procesos === 0){ add('consultoria', 3, 3); add('stack', 0.5, 3); add('ia', 1, 3); }
+  else if (answers.procesos === 2){ add('consultoria', 1.5, 3); add('stack', 2.5, 3); add('ia', 1.5, 3); }
+  else if (answers.procesos === 3){ add('consultoria', 1, 3); add('stack', 3, 3); add('ia', 1, 3); }
+
+  // Herramientas: tener CRM/ERP es la señal más fuerte de "stack". No tener nada empuja a "ia" o "consultoria" si es grande.
+  const herr = answers.herramientas;
+  let stackHerrSignal = 0, iaHerrSignal = 0, consultHerrSignal = 0;
+  if (herr.includes('crm') || herr.includes('erp') || herr.includes('contable')) stackHerrSignal += 3;
+  if (herr.includes('apps_sueltas')) { stackHerrSignal += 1.5; consultHerrSignal += 1; }
+  if (herr.includes('planillas') || herr.includes('whatsapp') || herr.includes('formularios')) { stackHerrSignal += 1; iaHerrSignal += 1; }
+  if (herr.includes('ninguna')){ iaHerrSignal += 3; consultHerrSignal += 1; stackHerrSignal = Math.max(0, stackHerrSignal - 1); }
+  add('stack', Math.min(3, stackHerrSignal), 3);
+  add('ia', Math.min(3, iaHerrSignal), 3);
+  add('consultoria', Math.min(3, consultHerrSignal), 3);
+
+  // ERP fit: sistema caro/complejo que no se adapta = candidato fuerte a stack (integrar sin reemplazar) o consultoría si es grande
+  if (answers.erp_fit === 3){ add('stack', 3, 3); add('consultoria', 1.5, 3); add('ia', 0.5, 3); }
+  else if (answers.erp_fit === 2){ add('stack', 1.5, 3); add('ia', 2.5, 3); add('consultoria', 0.5, 3); }
+  else if (answers.erp_fit === 0){ add('stack', 1, 3); add('consultoria', 1, 3); add('ia', 0.5, 3); }
+
+  // Área interna: si no tienen área de automatización, los 3 servicios aplican, pero más para consultoría si la empresa es grande
+  if (answers.area_interna === 3){ add('consultoria', 2, 2); add('stack', 2, 2); add('ia', 2, 2); }
+  else { add('consultoria', 0.5, 2); add('stack', 1, 2); add('ia', 1, 2); }
+
+  // Claridad del proceso: muy claro = stack (resolver algo puntual rápido). Poco claro + empresa grande = consultoría.
+  if (answers.claridad === 3){ add('stack', 3, 3); add('ia', 2, 3); add('consultoria', 0.5, 3); }
+  else if (answers.claridad === 1.5){ add('stack', 1.5, 3); add('consultoria', 1.5, 3); add('ia', 1.5, 3); }
+  else if (answers.claridad === 0){ add('consultoria', 3, 3); add('stack', 0.5, 3); add('ia', 1, 3); }
+
+  // Señal directa y más fuerte: qué tipo de ayuda dice buscar explícitamente
+  if (answers.tipo_ayuda === 'consultoria') add('consultoria', 5, 5);
+  else add('consultoria', 0, 5);
+  if (answers.tipo_ayuda === 'stack') add('stack', 5, 5);
+  else add('stack', 0, 5);
+  if (answers.tipo_ayuda === 'ia') add('ia', 5, 5);
+  else add('ia', 0, 5);
+
+  // Expectativa de alcance: querer reemplazar todo el stack no calza bien con ninguno de los 3 (se resta un poco a stack/ia)
+  if (answers.expectativa === 3){ add('consultoria', 1.5, 3); add('stack', 1.5, 3); add('ia', 1, 3); }
+  else if (answers.expectativa === 1){ add('consultoria', 1, 3); add('stack', 0.3, 3); add('ia', 0.3, 3); }
+  else { add('consultoria', 0.5, 3); add('stack', 0.5, 3); add('ia', 0.5, 3); }
+
+  const pct = {};
+  Object.keys(scores).forEach(k => {
+    pct[k] = maxes[k] > 0 ? Math.round((scores[k] / maxes[k]) * 100) : 0;
+    pct[k] = Math.max(0, Math.min(100, pct[k]));
+  });
+  return pct;
+}
+
+function computeFlags(){
+  const flags = [];
+  if (answers.area_interna === 3) flags.push({type:'good', text:'No tenés un área interna de automatización: Propulse cubre exactamente ese rol.'});
+  if (answers.area_interna === 0) flags.push({type:'warn', text:'Ya contás con un equipo interno de desarrollo. Podemos complementarlo, pero el fit es menor.'});
+
+  if (answers.procesos === 0) flags.push({type:'warn', text:'Tus procesos están poco definidos. Eso suele ser señal de necesitar una mirada más integral antes de automatizar algo puntual.'});
+  if (answers.procesos === 3) flags.push({type:'good', text:'Tus procesos están bien definidos, lo que acelera mucho una automatización puntual.'});
+
+  if (answers.herramientas.includes('ninguna')) flags.push({type:'bad', text:'Casi no usás herramientas formales todavía. Es un perfil típico para arrancar directo con IA o, si la empresa es grande, con consultoría integral.'});
+  if (answers.herramientas.includes('apps_sueltas')) flags.push({type:'warn', text:'Usás herramientas que no se comunican entre sí: ahí está justamente la oportunidad de integrarlas rápido.'});
+  if (answers.herramientas.includes('crm') || answers.herramientas.includes('erp')) flags.push({type:'good', text:'Ya tenés herramientas con buen potencial de integración (CRM/ERP), ideal para automatizaciones rápidas en tu stack.'});
+
+  if (answers.erp_fit === 3) flags.push({type:'good', text:'Tu sistema actual no se adapta bien a tu realidad. Es un escenario ideal para integrar y automatizar sin reemplazar todo.'});
+  if (answers.erp_fit === 0) flags.push({type:'warn', text:'Tu sistema actual ya te resuelve bien lo esencial, así que el margen de mejora puede ser más acotado.'});
+
+  if (answers.resistencia === 0) flags.push({type:'bad', text:'Hay resistencia interna al cambio. Sin acuerdo del equipo, cualquiera de los 3 servicios corre riesgo de no adoptarse.'});
+  if (answers.resistencia === 3) flags.push({type:'good', text:'Tu equipo está abierto al cambio, lo que mejora mucho las chances de adopción.'});
+
+  if (answers.operativo_disponible === 0) flags.push({type:'bad', text:'El responsable operativo no podría participar del diagnóstico. Es información clave que no queremos perder, sobre todo en una consultoría integral.'});
+
+  if (answers.claridad === 0) flags.push({type:'warn', text:'Todavía no está claro qué proceso específico mejorar. Eso suele apuntar más a una consultoría integral que a una automatización puntual.'});
+  if (answers.claridad === 3) flags.push({type:'good', text:'Tenés muy claro qué proceso querés mejorar, lo que permite ir directo a una solución concreta.'});
+
+  if (answers.expectativa === 1) flags.push({type:'warn', text:'Buscás reemplazar todas tus herramientas por un sistema nuevo tipo ERP. Nuestro enfoque es distinto: integrar y automatizar lo que ya usás, sin grandes inversiones.'});
+
+  return flags;
+}
+
+function submitDiagnostic(){
+  if (!validateStep(currentStep)) return;
+
+  document.getElementById('screen-form').classList.add('hidden');
+  document.getElementById('screen-loading').classList.remove('hidden');
+
+  setTimeout(async () => {
+    const pct = computeLevelScores();
+    const flags = computeFlags();
+    const empresa = escapeHtml(document.getElementById('q_empresa').value);
+
+    // Determine winner level
+    const order = ['consultoria', 'stack', 'ia'];
+    let winnerKey = order[0];
+    order.forEach(k => { if (pct[k] > pct[winnerKey]) winnerKey = k; });
+    const winner = LEVELS[winnerKey];
+
+    document.getElementById('resultTitle').textContent = `${empresa}: el mejor camino es ${winner.name}.`;
+    document.getElementById('resultSub').textContent = `Comparamos tus respuestas contra los 3 servicios de Propulse. Así quedó el nivel de adecuación a cada uno.`;
+
+    const levelsWrap = document.getElementById('levelsWrap');
+    levelsWrap.innerHTML = '';
+    order.forEach(key => {
+      const lvl = LEVELS[key];
+      const isWinner = key === winnerKey;
+      const card = document.createElement('div');
+      card.className = 'level-card' + (isWinner ? ' is-winner' : '');
+      card.innerHTML = `
+        ${isWinner ? '<div class="winner-tag">Recomendado</div>' : ''}
+        <div class="level-head">
+          <div>
+            <div class="level-num">Nivel ${lvl.num}</div>
+            <div class="level-name">${lvl.name}</div>
+          </div>
+          <div class="level-pct" style="color:${lvl.color}">${pct[key]}%</div>
+        </div>
+        <div class="level-bar-track">
+          <div class="level-bar-fill" style="width:${pct[key]}%; background:${lvl.color};"></div>
+        </div>
+        <p class="level-desc">${lvl.desc}</p>
+      `;
+      levelsWrap.appendChild(card);
+    });
+
+    const nextStepsByLevel = {
+      consultoria: {
+        title: 'Próximo paso: agendar una Discovery integral',
+        body: 'Te vamos a contactar para coordinar una reunión de 1 a 2 horas con el dueño/a y el responsable operativo. De ahí va a salir un mapa de procesos, el backlog priorizado y una propuesta por fases.'
+      },
+      stack: {
+        title: 'Próximo paso: relevamiento rápido de tu stack',
+        body: 'Te vamos a contactar para entender qué herramientas usás hoy y qué tarea puntual querés automatizar primero, para tener una propuesta concreta en pocos días.'
+      },
+      ia: {
+        title: 'Próximo paso: definir el primer caso de uso de IA',
+        body: 'Te vamos a contactar para identificar una tarea concreta del día a día donde la IA pueda empezar a ayudar ya, sin necesidad de un proyecto grande detrás.'
+      }
+    };
+
+    document.getElementById('nextStepsTitle').textContent = nextStepsByLevel[winnerKey].title;
+    document.getElementById('nextStepsBody').textContent = nextStepsByLevel[winnerKey].body;
+
+    const flagsList = document.getElementById('flagsList');
+    flagsList.innerHTML = '';
+    flags.forEach(f => {
+      const icon = f.type === 'good' ? '✓' : (f.type === 'warn' ? '!' : '✕');
+      const color = f.type === 'good' ? 'var(--good)' : (f.type === 'warn' ? 'var(--warn)' : 'var(--bad)');
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="flag-icon" style="color:${color}; font-weight:700;">${icon}</span><span>${escapeHtml(f.text)}</span>`;
+      flagsList.appendChild(li);
+    });
+    if (flags.length === 0){
+      flagsList.innerHTML = '<li>No detectamos señales particulares a destacar.</li>';
+    }
+
+    // Save to shared storage so the consultant can see lead history
+    const record = {
+      empresa: document.getElementById('q_empresa').value,
+      rubro: document.getElementById('q_rubro').value,
+      nombre: document.getElementById('q_nombre').value,
+      rol: document.getElementById('q_rol').value,
+      tamano: document.getElementById('q_tamano').value,
+      email: document.getElementById('q_email').value,
+      telefono: document.getElementById('q_telefono').value,
+      tarea_desaparecer: answers.tarea_desaparecer,
+      herramientas: answers.herramientas,
+      respuestas: answers,
+      porcentajes: pct,
+      nivel_recomendado: winner.name,
+      flags: flags.map(f => ({type: f.type, text: f.text})),
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      const key = 'lead:' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+      const result = await window.storage.set(key, JSON.stringify(record), true);
+      if (result) {
+        document.getElementById('savedPill').style.display = 'flex';
+      } else {
+        document.getElementById('savedPill').innerHTML = '<span style="color:var(--warn)">⚠</span><span>No se pudo guardar el registro, pero tu diagnóstico es válido.</span>';
+      }
+    } catch (err) {
+      console.error('Storage error:', err);
+      document.getElementById('savedPill').innerHTML = '<span style="color:var(--warn)">⚠</span><span>No se pudo guardar el registro, pero tu diagnóstico es válido.</span>';
+    }
+
+    document.getElementById('screen-loading').classList.add('hidden');
+    document.getElementById('screen-result').classList.remove('hidden');
+    document.getElementById('stepIndicator').textContent = 'Diagnóstico completo';
+    window.scrollTo({top:0, behavior:'smooth'});
+
+  }, 900);
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
