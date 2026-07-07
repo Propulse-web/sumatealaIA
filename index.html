@@ -866,6 +866,12 @@
 </div>
 
 <script>
+// ============================================================
+// PEGÁ ACÁ LA URL DE TU WEB APP DE GOOGLE APPS SCRIPT
+// (la que termina en /exec)
+// ============================================================
+const SCRIPT_URL = 'PEGA_ACA_TU_URL_DE_APPS_SCRIPT';
+
 const totalSteps = 6;
 let currentStep = 1;
 
@@ -1194,7 +1200,7 @@ function submitDiagnostic(){
       flagsList.innerHTML = '<li>No detectamos señales particulares a destacar.</li>';
     }
 
-    // Save to shared storage so the consultant can see lead history
+    // Enviar el registro al Google Sheet vía Apps Script
     const record = {
       empresa: document.getElementById('q_empresa').value,
       rubro: document.getElementById('q_rubro').value,
@@ -1213,15 +1219,15 @@ function submitDiagnostic(){
     };
 
     try {
-      const key = 'lead:' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
-      const result = await window.storage.set(key, JSON.stringify(record), true);
-      if (result) {
-        document.getElementById('savedPill').style.display = 'flex';
-      } else {
-        document.getElementById('savedPill').innerHTML = '<span style="color:var(--warn)">⚠</span><span>No se pudo guardar el registro, pero tu diagnóstico es válido.</span>';
-      }
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(record)
+      });
+      document.getElementById('savedPill').style.display = 'flex';
     } catch (err) {
-      console.error('Storage error:', err);
+      console.error('Error al guardar:', err);
       document.getElementById('savedPill').innerHTML = '<span style="color:var(--warn)">⚠</span><span>No se pudo guardar el registro, pero tu diagnóstico es válido.</span>';
     }
 
